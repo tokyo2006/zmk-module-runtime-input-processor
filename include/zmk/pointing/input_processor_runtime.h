@@ -42,6 +42,15 @@ struct zmk_input_processor_runtime_config {
     // Axis reverse settings
     bool x_invert; // Whether to invert X axis
     bool y_invert; // Whether to invert Y axis
+    // Ball action settings
+    bool ball_action_enabled;
+    uint8_t ball_action_mode;
+    uint8_t ball_action_direction;
+    uint16_t ball_action_threshold;
+    uint16_t ball_action_tick_ms;
+    uint16_t ball_action_tap_ms;
+    uint16_t ball_action_wait_ms;
+    uint32_t ball_action_active_layers;
 };
 
 /**
@@ -300,3 +309,76 @@ int zmk_input_processor_runtime_set_x_invert(const struct device *dev, bool inve
  */
 int zmk_input_processor_runtime_set_y_invert(const struct device *dev, bool invert,
                                              bool persistent);
+
+#if IS_ENABLED(CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR_BALL_ACTION)
+
+/**
+ * @brief Set ball action enabled state
+ *
+ * @param dev Pointer to the device structure
+ * @param enabled Whether ball action is enabled
+ * @param persistent If true, save to persistent storage; if false, temporary
+ * @return 0 on success, negative error code on failure
+ */
+int zmk_input_processor_runtime_set_ball_action_enabled(const struct device *dev, bool enabled,
+                                                        bool persistent);
+
+/**
+ * @brief Set ball action mode
+ *
+ * @param dev Pointer to the device structure
+ * @param mode Ball action mode (BALL_ACTION_MODE_*)
+ * @param persistent If true, save to persistent storage; if false, temporary
+ * @return 0 on success, negative error code on failure
+ */
+int zmk_input_processor_runtime_set_ball_action_mode(const struct device *dev, uint8_t mode,
+                                                     bool persistent);
+
+/**
+ * @brief Set ball action direction filter
+ *
+ * @param dev Pointer to the device structure
+ * @param direction Ball action direction (BALL_ACTION_DIR_*)
+ * @param persistent If true, save to persistent storage; if false, temporary
+ * @return 0 on success, negative error code on failure
+ */
+int zmk_input_processor_runtime_set_ball_action_direction(const struct device *dev,
+                                                          uint8_t direction, bool persistent);
+
+/**
+ * @brief Set ball action threshold
+ *
+ * @param dev Pointer to the device structure
+ * @param threshold Delta threshold to trigger ball action
+ * @param persistent If true, save to persistent storage; if false, temporary
+ * @return 0 on success, negative error code on failure
+ */
+int zmk_input_processor_runtime_set_ball_action_threshold(const struct device *dev,
+                                                          uint16_t threshold, bool persistent);
+
+/**
+ * @brief Set ball action timing parameters
+ *
+ * @param dev Pointer to the device structure
+ * @param tick_ms Minimum time between triggers
+ * @param tap_ms Behavior press duration
+ * @param wait_ms Wait after release before re-arm
+ * @param persistent If true, save to persistent storage; if false, temporary
+ * @return 0 on success, negative error code on failure
+ */
+int zmk_input_processor_runtime_set_ball_action_timing(const struct device *dev, uint16_t tick_ms,
+                                                       uint16_t tap_ms, uint16_t wait_ms,
+                                                       bool persistent);
+
+/**
+ * @brief Set ball action active layers
+ *
+ * @param dev Pointer to the device structure
+ * @param layers Bitmask of layers where ball action should be active
+ * @param persistent If true, save to persistent storage; if false, temporary
+ * @return 0 on success, negative error code on failure
+ */
+int zmk_input_processor_runtime_set_ball_action_active_layers(const struct device *dev,
+                                                               uint32_t layers, bool persistent);
+
+#endif

@@ -17,6 +17,8 @@ import {
   InputProcessorInfo,
   Notification,
   AxisSnapMode,
+  BallActionMode,
+  BallActionDir,
 } from "./proto/cormoran/rip/custom";
 
 // Custom subsystem identifier - must match firmware registration
@@ -121,6 +123,20 @@ export function InputProcessorManager() {
   // Axis invert state
   const [xInvert, setXInvert] = useState<boolean>(false);
   const [yInvert, setYInvert] = useState<boolean>(false);
+
+  // Ball action state
+  const [ballActionEnabled, setBallActionEnabled] = useState<boolean>(false);
+  const [ballActionMode, setBallActionMode] = useState<BallActionMode>(
+    BallActionMode.BALL_ACTION_MODE_DISABLED
+  );
+  const [ballActionDirection, setBallActionDirection] = useState<BallActionDir>(
+    BallActionDir.BALL_ACTION_DIR_ALL
+  );
+  const [ballActionThreshold, setBallActionThreshold] = useState<number>(50);
+  const [ballActionTickMs, setBallActionTickMs] = useState<number>(100);
+  const [ballActionTapMs, setBallActionTapMs] = useState<number>(50);
+  const [ballActionWaitMs, setBallActionWaitMs] = useState<number>(50);
+  const [ballActionActiveLayers, setBallActionActiveLayers] = useState<number>(0);
 
   const subsystem = useMemo(
     () => zmkApp?.findSubsystem(SUBSYSTEM_IDENTIFIER),
@@ -437,6 +453,100 @@ export function InputProcessorManager() {
         }
       }
 
+      if (currentProcessor.ballActionEnabled !== ballActionEnabled) {
+        const request = Request.create({
+          setBallActionEnabled: {
+            id: selectedProcessorId,
+            enabled: ballActionEnabled,
+          },
+        });
+        const resp = await callRPC(request);
+        if (resp?.error) {
+          setError(resp.error.message);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      if (currentProcessor.ballActionMode !== ballActionMode) {
+        const request = Request.create({
+          setBallActionMode: {
+            id: selectedProcessorId,
+            mode: ballActionMode,
+          },
+        });
+        const resp = await callRPC(request);
+        if (resp?.error) {
+          setError(resp.error.message);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      if (currentProcessor.ballActionDirection !== ballActionDirection) {
+        const request = Request.create({
+          setBallActionDirection: {
+            id: selectedProcessorId,
+            direction: ballActionDirection,
+          },
+        });
+        const resp = await callRPC(request);
+        if (resp?.error) {
+          setError(resp.error.message);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      if (currentProcessor.ballActionThreshold !== ballActionThreshold) {
+        const request = Request.create({
+          setBallActionThreshold: {
+            id: selectedProcessorId,
+            threshold: ballActionThreshold,
+          },
+        });
+        const resp = await callRPC(request);
+        if (resp?.error) {
+          setError(resp.error.message);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      if (currentProcessor.ballActionTickMs !== ballActionTickMs ||
+          currentProcessor.ballActionTapMs !== ballActionTapMs ||
+          currentProcessor.ballActionWaitMs !== ballActionWaitMs) {
+        const request = Request.create({
+          setBallActionTiming: {
+            id: selectedProcessorId,
+            tickMs: ballActionTickMs,
+            tapMs: ballActionTapMs,
+            waitMs: ballActionWaitMs,
+          },
+        });
+        const resp = await callRPC(request);
+        if (resp?.error) {
+          setError(resp.error.message);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      if (currentProcessor.ballActionActiveLayers !== ballActionActiveLayers) {
+        const request = Request.create({
+          setBallActionActiveLayers: {
+            id: selectedProcessorId,
+            layers: ballActionActiveLayers,
+          },
+        });
+        const resp = await callRPC(request);
+        if (resp?.error) {
+          setError(resp.error.message);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       // Updates will come via notifications
     } catch (err) {
       setError(
@@ -465,6 +575,14 @@ export function InputProcessorManager() {
     xySwapEnabled,
     xInvert,
     yInvert,
+    ballActionEnabled,
+    ballActionMode,
+    ballActionDirection,
+    ballActionThreshold,
+    ballActionTickMs,
+    ballActionTapMs,
+    ballActionWaitMs,
+    ballActionActiveLayers,
   ]);
 
   const selectProcessor = useCallback(
@@ -487,6 +605,14 @@ export function InputProcessorManager() {
         setXySwapEnabled(proc.xySwapEnabled);
         setXInvert(proc.xInvert);
         setYInvert(proc.yInvert);
+        setBallActionEnabled(proc.ballActionEnabled);
+        setBallActionMode(proc.ballActionMode);
+        setBallActionDirection(proc.ballActionDirection);
+        setBallActionThreshold(proc.ballActionThreshold);
+        setBallActionTickMs(proc.ballActionTickMs);
+        setBallActionTapMs(proc.ballActionTapMs);
+        setBallActionWaitMs(proc.ballActionWaitMs);
+        setBallActionActiveLayers(proc.ballActionActiveLayers);
       }
     },
     [processors]
@@ -546,6 +672,14 @@ export function InputProcessorManager() {
               setXySwapEnabled(proc.xySwapEnabled);
               setXInvert(proc.xInvert);
               setYInvert(proc.yInvert);
+              setBallActionEnabled(proc.ballActionEnabled);
+              setBallActionMode(proc.ballActionMode);
+              setBallActionDirection(proc.ballActionDirection);
+              setBallActionThreshold(proc.ballActionThreshold);
+              setBallActionTickMs(proc.ballActionTickMs);
+              setBallActionTapMs(proc.ballActionTapMs);
+              setBallActionWaitMs(proc.ballActionWaitMs);
+              setBallActionActiveLayers(proc.ballActionActiveLayers);
             }
 
             // If no processor is selected yet, select the first one
@@ -566,6 +700,14 @@ export function InputProcessorManager() {
               setXySwapEnabled(proc.xySwapEnabled);
               setXInvert(proc.xInvert);
               setYInvert(proc.yInvert);
+              setBallActionEnabled(proc.ballActionEnabled);
+              setBallActionMode(proc.ballActionMode);
+              setBallActionDirection(proc.ballActionDirection);
+              setBallActionThreshold(proc.ballActionThreshold);
+              setBallActionTickMs(proc.ballActionTickMs);
+              setBallActionTapMs(proc.ballActionTapMs);
+              setBallActionWaitMs(proc.ballActionWaitMs);
+              setBallActionActiveLayers(proc.ballActionActiveLayers);
             }
           }
         } catch (err) {
@@ -1100,6 +1242,172 @@ export function InputProcessorManager() {
               Reverse vertical input direction
             </div>
           </div>
+
+          <hr style={{ margin: "1.5rem 0", border: "1px solid #e0e0e0" }} />
+
+          <h3>Ball Action</h3>
+          <p style={{ fontSize: "0.9em", color: "#666", marginBottom: "1rem" }}>
+            Trigger behaviors based on accumulated movement deltas. When movement
+            exceeds the threshold, the configured behavior is invoked.
+          </p>
+
+          <div className="input-group">
+            <label htmlFor="ball-action-enabled">
+              <input
+                id="ball-action-enabled"
+                type="checkbox"
+                checked={ballActionEnabled}
+                onChange={(e) => setBallActionEnabled(e.target.checked)}
+                style={{ marginRight: "0.5rem" }}
+              />
+              Enable Ball Action
+            </label>
+          </div>
+
+          {ballActionEnabled && (
+            <>
+              <div className="input-group">
+                <label htmlFor="ball-action-mode">Mode:</label>
+                <select
+                  id="ball-action-mode"
+                  value={ballActionMode}
+                  onChange={(e) =>
+                    setBallActionMode(parseInt(e.target.value) as BallActionMode)
+                  }
+                  style={{ padding: "0.5rem", fontSize: "1rem" }}
+                >
+                  <option value={BallActionMode.BALL_ACTION_MODE_DISABLED}>
+                    Disabled
+                  </option>
+                  <option value={BallActionMode.BALL_ACTION_MODE_DELTA}>
+                    Delta (accumulate and trigger)
+                  </option>
+                  <option value={BallActionMode.BALL_ACTION_MODE_TICK}>
+                    Tick (trigger on each event)
+                  </option>
+                </select>
+                <div
+                  style={{
+                    fontSize: "0.85em",
+                    color: "#666",
+                    marginTop: "0.25rem",
+                  }}
+                >
+                  Delta mode suppresses original event when triggered
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="ball-action-direction">Direction:</label>
+                <select
+                  id="ball-action-direction"
+                  value={ballActionDirection}
+                  onChange={(e) =>
+                    setBallActionDirection(parseInt(e.target.value) as BallActionDir)
+                  }
+                  style={{ padding: "0.5rem", fontSize: "1rem" }}
+                >
+                  <option value={BallActionDir.BALL_ACTION_DIR_ALL}>
+                    All Directions
+                  </option>
+                  <option value={BallActionDir.BALL_ACTION_DIR_X_ONLY}>
+                    X Axis Only
+                  </option>
+                  <option value={BallActionDir.BALL_ACTION_DIR_Y_ONLY}>
+                    Y Axis Only
+                  </option>
+                </select>
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="ball-action-threshold">Threshold:</label>
+                <input
+                  id="ball-action-threshold"
+                  type="number"
+                  min="1"
+                  max="1000"
+                  step="5"
+                  value={ballActionThreshold}
+                  onChange={(e) =>
+                    setBallActionThreshold(parseInt(e.target.value) || 1)
+                  }
+                />
+                <div
+                  style={{
+                    fontSize: "0.85em",
+                    color: "#666",
+                    marginTop: "0.25rem",
+                  }}
+                >
+                  Movement delta required to trigger behavior (1-1000)
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="ball-action-tick-ms">Min Trigger Interval (ms):</label>
+                <input
+                  id="ball-action-tick-ms"
+                  type="number"
+                  min="10"
+                  max="5000"
+                  step="10"
+                  value={ballActionTickMs}
+                  onChange={(e) =>
+                    setBallActionTickMs(parseInt(e.target.value) || 100)
+                  }
+                />
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="ball-action-tap-ms">Tap Duration (ms):</label>
+                <input
+                  id="ball-action-tap-ms"
+                  type="number"
+                  min="0"
+                  max="1000"
+                  step="5"
+                  value={ballActionTapMs}
+                  onChange={(e) =>
+                    setBallActionTapMs(parseInt(e.target.value) || 0)
+                  }
+                />
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="ball-action-wait-ms">Wait After Release (ms):</label>
+                <input
+                  id="ball-action-wait-ms"
+                  type="number"
+                  min="0"
+                  max="1000"
+                  step="5"
+                  value={ballActionWaitMs}
+                  onChange={(e) =>
+                    setBallActionWaitMs(parseInt(e.target.value) || 0)
+                  }
+                />
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="ball-action-active-layers">
+                  Ball Action Active Layers (hex):
+                </label>
+                <input
+                  id="ball-action-active-layers"
+                  type="text"
+                  value={`0x${ballActionActiveLayers.toString(16).toUpperCase().padStart(8, "0")}`}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/^0x/i, "");
+                    const parsed = parseInt(val || "0", 16);
+                    if (!isNaN(parsed)) {
+                      setBallActionActiveLayers(parsed);
+                    }
+                  }}
+                  style={{ fontFamily: "monospace" }}
+                />
+              </div>
+            </>
+          )}
 
           <button
             className="btn btn-primary"

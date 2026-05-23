@@ -74,6 +74,18 @@ static int handle_set_x_invert(const cormoran_rip_SetXInvertRequest *req,
                                cormoran_rip_Response *resp);
 static int handle_set_y_invert(const cormoran_rip_SetYInvertRequest *req,
                                cormoran_rip_Response *resp);
+static int handle_set_ball_action_enabled(const cormoran_rip_SetBallActionEnabledRequest *req,
+                                           cormoran_rip_Response *resp);
+static int handle_set_ball_action_mode(const cormoran_rip_SetBallActionModeRequest *req,
+                                        cormoran_rip_Response *resp);
+static int handle_set_ball_action_direction(const cormoran_rip_SetBallActionDirectionRequest *req,
+                                            cormoran_rip_Response *resp);
+static int handle_set_ball_action_threshold(const cormoran_rip_SetBallActionThresholdRequest *req,
+                                             cormoran_rip_Response *resp);
+static int handle_set_ball_action_timing(const cormoran_rip_SetBallActionTimingRequest *req,
+                                           cormoran_rip_Response *resp);
+static int handle_set_ball_action_active_layers(
+    const cormoran_rip_SetBallActionActiveLayersRequest *req, cormoran_rip_Response *resp);
 
 /**
  * Main request handler for the custom RPC subsystem.
@@ -151,11 +163,31 @@ static bool rip_rpc_handle_request(const zmk_custom_CallRequest *raw_request,
         break;
     case cormoran_rip_Request_set_xy_swap_enabled_tag:
         rc = handle_set_xy_swap_enabled(&req.request_type.set_xy_swap_enabled, resp);
+        break;
     case cormoran_rip_Request_set_x_invert_tag:
         rc = handle_set_x_invert(&req.request_type.set_x_invert, resp);
         break;
     case cormoran_rip_Request_set_y_invert_tag:
         rc = handle_set_y_invert(&req.request_type.set_y_invert, resp);
+        break;
+    case cormoran_rip_Request_set_ball_action_enabled_tag:
+        rc = handle_set_ball_action_enabled(&req.request_type.set_ball_action_enabled, resp);
+        break;
+    case cormoran_rip_Request_set_ball_action_mode_tag:
+        rc = handle_set_ball_action_mode(&req.request_type.set_ball_action_mode, resp);
+        break;
+    case cormoran_rip_Request_set_ball_action_direction_tag:
+        rc = handle_set_ball_action_direction(&req.request_type.set_ball_action_direction, resp);
+        break;
+    case cormoran_rip_Request_set_ball_action_threshold_tag:
+        rc = handle_set_ball_action_threshold(&req.request_type.set_ball_action_threshold, resp);
+        break;
+    case cormoran_rip_Request_set_ball_action_timing_tag:
+        rc = handle_set_ball_action_timing(&req.request_type.set_ball_action_timing, resp);
+        break;
+    case cormoran_rip_Request_set_ball_action_active_layers_tag:
+        rc = handle_set_ball_action_active_layers(&req.request_type.set_ball_action_active_layers,
+                                                  resp);
         break;
     default:
         LOG_WRN("Unsupported rip request type: %d", req.which_request_type);
@@ -261,6 +293,14 @@ static int handle_get_input_processor(const cormoran_rip_GetInputProcessorReques
     result.processor.axis_snap_timeout_ms = config.axis_snap_timeout_ms;
     result.processor.x_invert = config.x_invert;
     result.processor.y_invert = config.y_invert;
+    result.processor.ball_action_enabled = config.ball_action_enabled;
+    result.processor.ball_action_mode = (cormoran_rip_BallActionMode)config.ball_action_mode;
+    result.processor.ball_action_direction = (cormoran_rip_BallActionDir)config.ball_action_direction;
+    result.processor.ball_action_threshold = config.ball_action_threshold;
+    result.processor.ball_action_tick_ms = config.ball_action_tick_ms;
+    result.processor.ball_action_tap_ms = config.ball_action_tap_ms;
+    result.processor.ball_action_wait_ms = config.ball_action_wait_ms;
+    result.processor.ball_action_active_layers = config.ball_action_active_layers;
 
     resp->which_response_type = cormoran_rip_Response_get_input_processor_tag;
     resp->response_type.get_input_processor = result;
@@ -792,5 +832,149 @@ static int handle_set_xy_swap_enabled(const cormoran_rip_SetXySwapEnabledRequest
 
     return 0;
 }
+
+#if IS_ENABLED(CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR_BALL_ACTION)
+
+static int handle_set_ball_action_enabled(const cormoran_rip_SetBallActionEnabledRequest *req,
+                                          cormoran_rip_Response *resp) {
+    LOG_DBG("Setting ball action enabled for id=%d to %d", req->id, req->enabled);
+
+    const struct device *dev = zmk_input_processor_runtime_find_by_id(req->id);
+    if (!dev) {
+        LOG_WRN("Input processor not found: id=%d", req->id);
+        return -ENODEV;
+    }
+
+    int ret = zmk_input_processor_runtime_set_ball_action_enabled(dev, req->enabled, true);
+    if (ret < 0) {
+        LOG_ERR("Failed to set ball action enabled: %d", ret);
+        return ret;
+    }
+
+    resp->which_response_type = cormoran_rip_Response_set_ball_action_enabled_tag;
+    resp->response_type.set_ball_action_enabled =
+        (cormoran_rip_SetBallActionEnabledResponse)cormoran_rip_SetBallActionEnabledResponse_init_zero;
+
+    return 0;
+}
+
+static int handle_set_ball_action_mode(const cormoran_rip_SetBallActionModeRequest *req,
+                                       cormoran_rip_Response *resp) {
+    LOG_DBG("Setting ball action mode for id=%d to %d", req->id, req->mode);
+
+    const struct device *dev = zmk_input_processor_runtime_find_by_id(req->id);
+    if (!dev) {
+        LOG_WRN("Input processor not found: id=%d", req->id);
+        return -ENODEV;
+    }
+
+    int ret = zmk_input_processor_runtime_set_ball_action_mode(dev, req->mode, true);
+    if (ret < 0) {
+        LOG_ERR("Failed to set ball action mode: %d", ret);
+        return ret;
+    }
+
+    resp->which_response_type = cormoran_rip_Response_set_ball_action_mode_tag;
+    resp->response_type.set_ball_action_mode =
+        (cormoran_rip_SetBallActionModeResponse)cormoran_rip_SetBallActionModeResponse_init_zero;
+
+    return 0;
+}
+
+static int handle_set_ball_action_direction(const cormoran_rip_SetBallActionDirectionRequest *req,
+                                            cormoran_rip_Response *resp) {
+    LOG_DBG("Setting ball action direction for id=%d to %d", req->id, req->direction);
+
+    const struct device *dev = zmk_input_processor_runtime_find_by_id(req->id);
+    if (!dev) {
+        LOG_WRN("Input processor not found: id=%d", req->id);
+        return -ENODEV;
+    }
+
+    int ret = zmk_input_processor_runtime_set_ball_action_direction(dev, req->direction, true);
+    if (ret < 0) {
+        LOG_ERR("Failed to set ball action direction: %d", ret);
+        return ret;
+    }
+
+    resp->which_response_type = cormoran_rip_Response_set_ball_action_direction_tag;
+    resp->response_type.set_ball_action_direction =
+        (cormoran_rip_SetBallActionDirectionResponse)cormoran_rip_SetBallActionDirectionResponse_init_zero;
+
+    return 0;
+}
+
+static int handle_set_ball_action_threshold(const cormoran_rip_SetBallActionThresholdRequest *req,
+                                             cormoran_rip_Response *resp) {
+    LOG_DBG("Setting ball action threshold for id=%d to %d", req->id, req->threshold);
+
+    const struct device *dev = zmk_input_processor_runtime_find_by_id(req->id);
+    if (!dev) {
+        LOG_WRN("Input processor not found: id=%d", req->id);
+        return -ENODEV;
+    }
+
+    int ret = zmk_input_processor_runtime_set_ball_action_threshold(dev, req->threshold, true);
+    if (ret < 0) {
+        LOG_ERR("Failed to set ball action threshold: %d", ret);
+        return ret;
+    }
+
+    resp->which_response_type = cormoran_rip_Response_set_ball_action_threshold_tag;
+    resp->response_type.set_ball_action_threshold =
+        (cormoran_rip_SetBallActionThresholdResponse)cormoran_rip_SetBallActionThresholdResponse_init_zero;
+
+    return 0;
+}
+
+static int handle_set_ball_action_timing(const cormoran_rip_SetBallActionTimingRequest *req,
+                                         cormoran_rip_Response *resp) {
+    LOG_DBG("Setting ball action timing for id=%d: tick=%d, tap=%d, wait=%d", req->id, req->tick_ms,
+            req->tap_ms, req->wait_ms);
+
+    const struct device *dev = zmk_input_processor_runtime_find_by_id(req->id);
+    if (!dev) {
+        LOG_WRN("Input processor not found: id=%d", req->id);
+        return -ENODEV;
+    }
+
+    int ret = zmk_input_processor_runtime_set_ball_action_timing(dev, req->tick_ms, req->tap_ms,
+                                                                   req->wait_ms, true);
+    if (ret < 0) {
+        LOG_ERR("Failed to set ball action timing: %d", ret);
+        return ret;
+    }
+
+    resp->which_response_type = cormoran_rip_Response_set_ball_action_timing_tag;
+    resp->response_type.set_ball_action_timing =
+        (cormoran_rip_SetBallActionTimingResponse)cormoran_rip_SetBallActionTimingResponse_init_zero;
+
+    return 0;
+}
+
+static int handle_set_ball_action_active_layers(const cormoran_rip_SetBallActionActiveLayersRequest *req,
+                                                cormoran_rip_Response *resp) {
+    LOG_DBG("Setting ball action active layers for id=%d to 0x%08x", req->id, req->layers);
+
+    const struct device *dev = zmk_input_processor_runtime_find_by_id(req->id);
+    if (!dev) {
+        LOG_WRN("Input processor not found: id=%d", req->id);
+        return -ENODEV;
+    }
+
+    int ret = zmk_input_processor_runtime_set_ball_action_active_layers(dev, req->layers, true);
+    if (ret < 0) {
+        LOG_ERR("Failed to set ball action active layers: %d", ret);
+        return ret;
+    }
+
+    resp->which_response_type = cormoran_rip_Response_set_ball_action_active_layers_tag;
+    resp->response_type.set_ball_action_active_layers =
+        (cormoran_rip_SetBallActionActiveLayersResponse)cormoran_rip_SetBallActionActiveLayersResponse_init_zero;
+
+    return 0;
+}
+
+#endif // CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR_BALL_ACTION
 
 #endif // CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR

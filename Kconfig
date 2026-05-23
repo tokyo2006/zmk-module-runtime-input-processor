@@ -11,4 +11,17 @@ config ZMK_RUNTIME_INPUT_PROCESSOR_NAME_MAX_LEN
     int "Maximum length of runtime input processor names"
     default 8
 
+config ZMK_RUNTIME_INPUT_PROCESSOR_BALL_ACTION
+    bool "Enable ball action support"
+    default n
+
+if ZMK_RUNTIME_INPUT_PROCESSOR_BALL_ACTION
+
+config ZMK_RUNTIME_INPUT_PROCESSOR_BALL_ACTION_MAX_BINDINGS
+    int "Maximum ball action bindings"
+    default 4
+    range 1 8
+
+endif
+
 endif

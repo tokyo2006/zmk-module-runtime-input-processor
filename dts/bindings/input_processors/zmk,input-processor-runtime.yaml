@@ -132,3 +132,51 @@ properties:
   y-invert:
     type: boolean
     description: If present, invert Y axis values (positive becomes negative and vice versa)
+
+  ball-action-enabled:
+    type: boolean
+    description: If present, ball action is enabled by default
+
+  ball-action-mode:
+    type: int
+    default: 0
+    description: |
+      Ball action trigger mode: 0 = disabled, 1 = delta (accumulate and trigger), 2 = tick (trigger on each event).
+
+  ball-action-direction:
+    type: int
+    default: 0
+    description: |
+      Ball action direction filter: 0 = all directions, 1 = X only, 2 = Y only.
+
+  ball-action-threshold:
+    type: int
+    default: 50
+    description: Delta threshold to trigger ball action behavior.
+
+  ball-action-tick-ms:
+    type: int
+    default: 100
+    description: Minimum time between ball action triggers (ms).
+
+  ball-action-tap-ms:
+    type: int
+    default: 50
+    description: Behavior press duration (ms).
+
+  ball-action-wait-ms:
+    type: int
+    default: 50
+    description: Wait after release before re-arm (ms).
+
+  ball-action-bindings:
+    type: array
+    required: true
+    description: |
+      Behavior bindings for ball action directions. Up to 4 bindings for: right, left, up, down.
+
+  ball-action-active-layers:
+    type: int
+    default: 0
+    description: |
+      Bitmask of layers where ball action should be active (0 = all layers).

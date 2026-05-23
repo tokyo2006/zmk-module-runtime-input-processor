@@ -48,4 +48,33 @@
 
 		#input-processor-cells = <0>;
 	};
+
+	/omit-if-no-ref/
+	ballaction_runtime_input_processor: ballaction_runtime_input_processor {
+		compatible = "zmk,input-processor-runtime";
+		processor-label = "ballact";
+		type = <INPUT_EV_REL>;
+		x-codes = <INPUT_REL_X>;
+		y-codes = <INPUT_REL_Y>;
+		scale-multiplier = <1>;
+		scale-divisor = <1>;
+		rotation-degrees = <0>;
+		track-remainders;
+
+		temp-layer-transparent-behavior = <&trans>;
+		temp-layer-kp-behavior = <&kp>;
+		temp-layer-keep-keycodes = <LEFT_CONTROL LEFT_SHIFT LEFT_ALT LEFT_GUI RIGHT_CONTROL RIGHT_SHIFT RIGHT_ALT RIGHT_GUI>;
+
+		ball-action-enabled;
+		ball-action-mode = <1>;           // DELTA mode
+		ball-action-direction = <0>;      // ALL directions
+		ball-action-threshold = <50>;
+		ball-action-tick-ms = <100>;
+		ball-action-tap-ms = <50>;
+		ball-action-wait-ms = <50>;
+		ball-action-active-layers = <0>;  // All layers
+		ball-action-bindings = <&kp RIGHT>, <&kp LEFT>, <&kp UP>, <&kp DOWN>;
+
+		#input-processor-cells = <0>;
+	};
 };
