@@ -176,8 +176,8 @@ static bool rip_rpc_handle_request(const zmk_custom_CallRequest *raw_request,
     case cormoran_rip_Request_set_ball_action_mode_tag:
         rc = handle_set_ball_action_mode(&req.request_type.set_ball_action_mode, resp);
         break;
-    case cormoran_rip_Request_set_ball_action_direction_tag:
-        rc = handle_set_ball_action_direction(&req.request_type.set_ball_action_direction, resp);
+    case cormoran_rip_Request_set_ball_action_binding_tag:
+        rc = handle_set_ball_action_binding(&req.request_type.set_ball_action_binding, resp);
         break;
     case cormoran_rip_Request_set_ball_action_threshold_tag:
         rc = handle_set_ball_action_threshold(&req.request_type.set_ball_action_threshold, resp);
@@ -881,9 +881,9 @@ static int handle_set_ball_action_mode(const cormoran_rip_SetBallActionModeReque
     return 0;
 }
 
-static int handle_set_ball_action_direction(const cormoran_rip_SetBallActionDirectionRequest *req,
-                                            cormoran_rip_Response *resp) {
-    LOG_DBG("Setting ball action direction for id=%d to %d", req->id, req->direction);
+static int handle_set_ball_action_binding(const cormoran_rip_SetBallActionBindingRequest *req,
+                                           cormoran_rip_Response *resp) {
+    LOG_DBG("Setting ball action binding[%d] for id=%d", req->index, req->id);
 
     const struct device *dev = zmk_input_processor_runtime_find_by_id(req->id);
     if (!dev) {
@@ -891,15 +891,15 @@ static int handle_set_ball_action_direction(const cormoran_rip_SetBallActionDire
         return -ENODEV;
     }
 
-    int ret = zmk_input_processor_runtime_set_ball_action_direction(dev, req->direction, true);
+    int ret = zmk_input_processor_runtime_set_ball_action_binding(dev, req->index, req->binding, true);
     if (ret < 0) {
-        LOG_ERR("Failed to set ball action direction: %d", ret);
+        LOG_ERR("Failed to set ball action binding: %d", ret);
         return ret;
     }
 
-    resp->which_response_type = cormoran_rip_Response_set_ball_action_direction_tag;
-    resp->response_type.set_ball_action_direction =
-        (cormoran_rip_SetBallActionDirectionResponse)cormoran_rip_SetBallActionDirectionResponse_init_zero;
+    resp->which_response_type = cormoran_rip_Response_set_ball_action_binding_tag;
+    resp->response_type.set_ball_action_binding =
+        (cormoran_rip_SetBallActionBindingResponse)cormoran_rip_SetBallActionBindingResponse_init_zero;
 
     return 0;
 }

@@ -16,13 +16,6 @@ enum BallActionMode {
     BALL_ACTION_MODE_TICK = 2;     // Trigger on each event
 }
 
-// Ball action direction enum
-enum BallActionDir {
-    BALL_ACTION_DIR_ALL = 0;     // All directions
-    BALL_ACTION_DIR_X_ONLY = 1;  // X axis only
-    BALL_ACTION_DIR_Y_ONLY = 2; // Y axis only
-}
-
 // Runtime Input Processor Messages
 message InputProcessorInfo {
     uint32 id = 1;               // Processor ID (index in array)
@@ -50,12 +43,15 @@ message InputProcessorInfo {
     // Ball action settings
     bool ball_action_enabled = 18;
     BallActionMode ball_action_mode = 19;
-    BallActionDir ball_action_direction = 20;
-    uint32 ball_action_threshold = 21;
-    uint32 ball_action_tick_ms = 22;
-    uint32 ball_action_tap_ms = 23;
-    uint32 ball_action_wait_ms = 24;
-    uint32 ball_action_active_layers = 25;
+    uint32 ball_action_threshold = 20;
+    uint32 ball_action_tick_ms = 21;
+    uint32 ball_action_tap_ms = 22;
+    uint32 ball_action_wait_ms = 23;
+    uint32 ball_action_active_layers = 24;
+    string ball_action_binding_0 = 25; // +X direction binding
+    string ball_action_binding_1 = 26; // -X direction binding
+    string ball_action_binding_2 = 27; // +Y direction binding
+    string ball_action_binding_3 = 28; // -Y direction binding
 }
 
 message ListInputProcessorsRequest {
@@ -238,9 +234,10 @@ message SetBallActionModeRequest {
     BallActionMode mode = 2;
 }
 
-message SetBallActionDirectionRequest {
+message SetBallActionBindingRequest {
     uint32 id = 1;
-    BallActionDir direction = 2;
+    uint32 index = 2; // 0=+X, 1=-X, 2=+Y, 3=-Y
+    string binding = 3; // "behavior:param1:param2" format
 }
 
 message SetBallActionThresholdRequest {
@@ -262,7 +259,7 @@ message SetBallActionActiveLayersRequest {
 
 message SetBallActionEnabledResponse { }
 message SetBallActionModeResponse { }
-message SetBallActionDirectionResponse { }
+message SetBallActionBindingResponse { }
 message SetBallActionThresholdResponse { }
 message SetBallActionTimingResponse { }
 message SetBallActionActiveLayersResponse { }
@@ -290,7 +287,7 @@ message Request {
         SetYInvertRequest set_y_invert = 19;
         SetBallActionEnabledRequest set_ball_action_enabled = 20;
         SetBallActionModeRequest set_ball_action_mode = 21;
-        SetBallActionDirectionRequest set_ball_action_direction = 22;
+        SetBallActionBindingRequest set_ball_action_binding = 22;
         SetBallActionThresholdRequest set_ball_action_threshold = 23;
         SetBallActionTimingRequest set_ball_action_timing = 24;
         SetBallActionActiveLayersRequest set_ball_action_active_layers = 25;
@@ -323,7 +320,7 @@ message Response {
         SetYInvertResponse set_y_invert = 20;
         SetBallActionEnabledResponse set_ball_action_enabled = 21;
         SetBallActionModeResponse set_ball_action_mode = 22;
-        SetBallActionDirectionResponse set_ball_action_direction = 23;
+        SetBallActionBindingResponse set_ball_action_binding = 23;
         SetBallActionThresholdResponse set_ball_action_threshold = 24;
         SetBallActionTimingResponse set_ball_action_timing = 25;
         SetBallActionActiveLayersResponse set_ball_action_active_layers = 26;

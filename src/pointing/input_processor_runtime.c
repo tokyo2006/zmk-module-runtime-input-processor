@@ -65,13 +65,11 @@ struct runtime_processor_config {
     // Ball action default settings from DT
     bool initial_ball_action_enabled;
     uint8_t initial_ball_action_mode;
-    uint8_t initial_ball_action_direction;
     uint16_t initial_ball_action_threshold;
     uint16_t initial_ball_action_tick_ms;
     uint16_t initial_ball_action_tap_ms;
     uint16_t initial_ball_action_wait_ms;
-    size_t ball_action_bindings_len;
-    const struct zmk_behavior_binding *ball_action_bindings;
+    char initial_ball_action_bindings[4][32];
     uint32_t initial_ball_action_active_layers;
 #endif
 };
@@ -158,20 +156,20 @@ struct runtime_processor_data {
     // Ball action settings (current)
     bool ball_action_enabled;
     uint8_t ball_action_mode;
-    uint8_t ball_action_direction;
     uint16_t ball_action_threshold;
     uint16_t ball_action_tick_ms;
     uint16_t ball_action_tap_ms;
     uint16_t ball_action_wait_ms;
+    struct zmk_behavior_binding ball_action_bindings[4];
     uint32_t ball_action_active_layers;
     // Ball action settings (persistent)
     bool persistent_ball_action_enabled;
     uint8_t persistent_ball_action_mode;
-    uint8_t persistent_ball_action_direction;
     uint16_t persistent_ball_action_threshold;
     uint16_t persistent_ball_action_tick_ms;
     uint16_t persistent_ball_action_tap_ms;
     uint16_t persistent_ball_action_wait_ms;
+    struct zmk_behavior_binding persistent_ball_action_bindings[4];
     uint32_t persistent_ball_action_active_layers;
     // Ball action runtime state
     int32_t ball_action_delta_x;
@@ -180,6 +178,33 @@ struct runtime_processor_data {
     bool ball_action_is_armed;
 #endif
 };
+
+static void parse_binding_string(const char *str, struct zmk_behavior_binding *binding) {
+    if (!str) {
+        binding->behavior_dev[0] = '\0';
+        binding->param1 = 0;
+        binding->param2 = 0;
+        return;
+    }
+
+    char tmp[64];
+    strncpy(tmp, str, sizeof(tmp) - 1);
+    tmp[sizeof(tmp) - 1] = '\0';
+
+    char *dev_name = strtok(tmp, ":");
+    char *p1_str = strtok(NULL, ":");
+    char *p2_str = strtok(NULL, ":");
+
+    if (dev_name) {
+        strncpy(binding->behavior_dev, dev_name, sizeof(binding->behavior_dev) - 1);
+        binding->behavior_dev[sizeof(binding->behavior_dev) - 1] = '\0';
+    } else {
+        binding->behavior_dev[0] = '\0';
+    }
+
+    binding->param1 = p1_str ? atoi(p1_str) : 0;
+    binding->param2 = p2_str ? atoi(p2_str) : 0;
+}
 
 static void update_rotation_values(struct runtime_processor_data *data) {
     if (data->rotation_degrees == 0) {
@@ -499,16 +524,9 @@ static int runtime_processor_handle_event(const struct device *dev, struct input
         is_processor_active_for_current_layers(data->ball_action_active_layers) &&
         event->value != 0) {
 
-        bool process_x =
-            (data->ball_action_direction == BALL_ACTION_DIR_ALL ||
-             data->ball_action_direction == BALL_ACTION_DIR_X_ONLY);
-        bool process_y =
-            (data->ball_action_direction == BALL_ACTION_DIR_ALL ||
-             data->ball_action_direction == BALL_ACTION_DIR_Y_ONLY);
-
-        if (is_x && process_x) {
+        if (is_x) {
             data->ball_action_delta_x += value;
-        } else if (!is_x && process_y) {
+        } else {
             data->ball_action_delta_y += value;
         }
 
@@ -516,43 +534,29 @@ static int runtime_processor_handle_event(const struct device *dev, struct input
         bool time_ok = (data->ball_action_last_trigger_timestamp == 0) ||
                        (now - data->ball_action_last_trigger_timestamp) >= data->ball_action_tick_ms;
 
-        if (time_ok && data->ball_action_is_armed && cfg->ball_action_bindings != NULL) {
+        if (time_ok && data->ball_action_is_armed) {
             int32_t trigger_delta = 0;
             uint8_t binding_idx = 0;
 
             if (data->ball_action_mode == BALL_ACTION_MODE_DELTA) {
-                if (data->ball_action_direction == BALL_ACTION_DIR_X_ONLY) {
-                    trigger_delta = data->ball_action_delta_x;
-                } else if (data->ball_action_direction == BALL_ACTION_DIR_Y_ONLY) {
-                    trigger_delta = data->ball_action_delta_y;
-                } else {
-                    trigger_delta = (data->ball_action_delta_x > data->ball_action_delta_y)
-                                       ? data->ball_action_delta_x
-                                       : data->ball_action_delta_y;
-                }
+                trigger_delta = (data->ball_action_delta_x > data->ball_action_delta_y)
+                                   ? data->ball_action_delta_x
+                                   : data->ball_action_delta_y;
             } else if (data->ball_action_mode == BALL_ACTION_MODE_TICK) {
                 trigger_delta = value;
             }
 
-            if (trigger_delta >= data->ball_action_threshold ||
+            if (trigger_delta >= (int32_t)data->ball_action_threshold ||
                 trigger_delta <= -(int32_t)data->ball_action_threshold) {
 
-                if (data->ball_action_direction == BALL_ACTION_DIR_X_ONLY) {
+                if (trigger_delta == data->ball_action_delta_x) {
                     binding_idx = (trigger_delta > 0) ? 0 : 1;
-                } else if (data->ball_action_direction == BALL_ACTION_DIR_Y_ONLY) {
-                    binding_idx = (trigger_delta > 0) ? 2 : 3;
                 } else {
-                    if (trigger_delta == data->ball_action_delta_x) {
-                        binding_idx = (trigger_delta > 0) ? 0 : 1;
-                    } else {
-                        binding_idx = (trigger_delta > 0) ? 2 : 3;
-                    }
+                    binding_idx = (trigger_delta > 0) ? 2 : 3;
                 }
 
-                if (binding_idx < cfg->ball_action_bindings_len) {
-                    const struct zmk_behavior_binding *binding =
-                        &cfg->ball_action_bindings[binding_idx];
-
+                struct zmk_behavior_binding *binding = &data->ball_action_bindings[binding_idx];
+                if (binding->behavior_dev[0] != '\0') {
                     struct zmk_behavior_binding_event behavior_event = {
                         .position = INT32_MAX,
                         .timestamp = k_uptime_get(),
@@ -838,7 +842,6 @@ static int runtime_processor_init(const struct device *dev) {
 #if IS_ENABLED(CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR_BALL_ACTION)
     data->ball_action_enabled = cfg->initial_ball_action_enabled;
     data->ball_action_mode = cfg->initial_ball_action_mode;
-    data->ball_action_direction = cfg->initial_ball_action_direction;
     data->ball_action_threshold = cfg->initial_ball_action_threshold;
     data->ball_action_tick_ms = cfg->initial_ball_action_tick_ms;
     data->ball_action_tap_ms = cfg->initial_ball_action_tap_ms;
@@ -846,12 +849,15 @@ static int runtime_processor_init(const struct device *dev) {
     data->ball_action_active_layers = cfg->initial_ball_action_active_layers;
     data->persistent_ball_action_enabled = cfg->initial_ball_action_enabled;
     data->persistent_ball_action_mode = cfg->initial_ball_action_mode;
-    data->persistent_ball_action_direction = cfg->initial_ball_action_direction;
     data->persistent_ball_action_threshold = cfg->initial_ball_action_threshold;
     data->persistent_ball_action_tick_ms = cfg->initial_ball_action_tick_ms;
     data->persistent_ball_action_tap_ms = cfg->initial_ball_action_tap_ms;
     data->persistent_ball_action_wait_ms = cfg->initial_ball_action_wait_ms;
     data->persistent_ball_action_active_layers = cfg->initial_ball_action_active_layers;
+    for (int i = 0; i < 4; i++) {
+        parse_binding_string(cfg->initial_ball_action_bindings[i], &data->ball_action_bindings[i]);
+        parse_binding_string(cfg->initial_ball_action_bindings[i], &data->persistent_ball_action_bindings[i]);
+    }
     data->ball_action_delta_x = 0;
     data->ball_action_delta_y = 0;
     data->ball_action_last_trigger_timestamp = 0;
@@ -1081,6 +1087,10 @@ int zmk_input_processor_runtime_get_config(const struct device *dev, const char 
                 (static const uint16_t runtime_temp_layer_keep_keycodes_##n[] =                    \
                      DT_INST_PROP(n, temp_layer_keep_keycodes);),                                  \
                 ())                                                                                \
+    COND_CODE_1(DT_INST_NODE_HAS_PROP(n, ball_action_bindings),                                   \
+                (static const char *runtime_ball_action_bindings_##n[] =                           \
+                     DT_INST_PROP(n, ball_action_bindings);),                                      \
+                (static const char *runtime_ball_action_bindings_##n[] = { NULL, NULL, NULL, NULL };)) \
     BUILD_ASSERT(sizeof(DT_INST_PROP(n, processor_label)) <=                                       \
                      CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR_NAME_MAX_LEN,                              \
                  "processor_label " DT_INST_PROP(                                                  \
@@ -1126,14 +1136,12 @@ int zmk_input_processor_runtime_get_config(const struct device *dev, const char 
         COND_CODE_1(CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR_BALL_ACTION, (                            \
             .initial_ball_action_enabled = DT_INST_PROP(n, ball_action_enabled),                 \
             .initial_ball_action_mode = DT_INST_PROP_OR(n, ball_action_mode, 0),                  \
-            .initial_ball_action_direction = DT_INST_PROP_OR(n, ball_action_direction, 0),      \
             .initial_ball_action_threshold = DT_INST_PROP_OR(n, ball_action_threshold, 50),      \
             .initial_ball_action_tick_ms = DT_INST_PROP_OR(n, ball_action_tick_ms, 100),         \
             .initial_ball_action_tap_ms = DT_INST_PROP_OR(n, ball_action_tap_ms, 50),           \
             .initial_ball_action_wait_ms = DT_INST_PROP_OR(n, ball_action_wait_ms, 50),         \
-            .ball_action_bindings_len = DT_INST_PROP_LEN(n, ball_action_bindings),             \
-            .ball_action_bindings = DT_INST_PROP(n, ball_action_bindings),                     \
             .initial_ball_action_active_layers = DT_INST_PROP_OR(n, ball_action_active_layers, 0), \
+            .initial_ball_action_bindings = runtime_ball_action_bindings_##n,                   \
         ), ())                                                                                   \
     };                                                                                             \
     static struct runtime_processor_data runtime_data_##n;                                         \
@@ -1223,24 +1231,21 @@ int zmk_input_processor_runtime_set_ball_action_mode(const struct device *dev, u
     return ret;
 }
 
-int zmk_input_processor_runtime_set_ball_action_direction(const struct device *dev,
-                                                          uint8_t direction, bool persistent) {
-    if (!dev) {
-        return -EINVAL;
-    }
-
-    if (direction > BALL_ACTION_DIR_Y_ONLY) {
+int zmk_input_processor_runtime_set_ball_action_binding(const struct device *dev,
+                                                          uint8_t index, const char *binding_str,
+                                                          bool persistent) {
+    if (!dev || index >= 4) {
         return -EINVAL;
     }
 
     struct runtime_processor_data *data = dev->data;
-    data->ball_action_direction = direction;
+    parse_binding_string(binding_str, &data->ball_action_bindings[index]);
 
     if (persistent) {
-        data->persistent_ball_action_direction = direction;
+        parse_binding_string(binding_str, &data->persistent_ball_action_bindings[index]);
     }
 
-    LOG_INF("Ball action direction: %d%s", direction,
+    LOG_INF("Ball action binding[%d]: %s%s", index, binding_str ? binding_str : "(none)",
             persistent ? " (persistent)" : " (temporary)");
 
     int ret = 0;
