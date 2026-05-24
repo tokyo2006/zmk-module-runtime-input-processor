@@ -237,7 +237,7 @@ message SetBallActionModeRequest {
 message SetBallActionBindingRequest {
     uint32 id = 1;
     uint32 index = 2; // 0=+X, 1=-X, 2=+Y, 3=-Y
-    bytes binding = 3 [max_size = 32]; // "behavior:param1:param2" format
+    bytes binding = 3; // "behavior:param1:param2" format
 }
 
 message SetBallActionThresholdRequest {
