@@ -672,12 +672,12 @@ static void save_processor_settings_work_handler(struct k_work *work) {
 #if IS_ENABLED(CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR_BALL_ACTION)
         .ball_action_enabled = data->persistent_ball_action_enabled,
         .ball_action_mode = data->persistent_ball_action_mode,
-        .ball_action_direction = data->persistent_ball_action_direction,
         .ball_action_threshold = data->persistent_ball_action_threshold,
         .ball_action_tick_ms = data->persistent_ball_action_tick_ms,
         .ball_action_tap_ms = data->persistent_ball_action_tap_ms,
         .ball_action_wait_ms = data->persistent_ball_action_wait_ms,
         .ball_action_active_layers = data->persistent_ball_action_active_layers,
+        .ball_action_bindings = {0},
 #endif
     };
 
