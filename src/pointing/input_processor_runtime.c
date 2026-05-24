@@ -642,7 +642,6 @@ struct processor_settings {
     uint16_t ball_action_tap_ms;
     uint16_t ball_action_wait_ms;
     uint32_t ball_action_active_layers;
-    char ball_action_bindings[4][32];
 #endif
 };
 
@@ -677,7 +676,6 @@ static void save_processor_settings_work_handler(struct k_work *work) {
         .ball_action_tap_ms = data->persistent_ball_action_tap_ms,
         .ball_action_wait_ms = data->persistent_ball_action_wait_ms,
         .ball_action_active_layers = data->persistent_ball_action_active_layers,
-        .ball_action_bindings = {0},
 #endif
     };
 
@@ -749,12 +747,6 @@ static int load_processor_settings_cb(const char *name, size_t len, settings_rea
             data->persistent_ball_action_tap_ms = settings.ball_action_tap_ms;
             data->persistent_ball_action_wait_ms = settings.ball_action_wait_ms;
             data->persistent_ball_action_active_layers = settings.ball_action_active_layers;
-            for (int i = 0; i < 4; i++) {
-                strncpy(data->persistent_ball_action_bindings[i], settings.ball_action_bindings[i], 31);
-                data->persistent_ball_action_bindings[i][31] = '\0';
-                strncpy(data->ball_action_bindings[i], settings.ball_action_bindings[i], 31);
-                data->ball_action_bindings[i][31] = '\0';
-            }
             data->ball_action_enabled = settings.ball_action_enabled;
             data->ball_action_mode = settings.ball_action_mode;
             data->ball_action_threshold = settings.ball_action_threshold;
