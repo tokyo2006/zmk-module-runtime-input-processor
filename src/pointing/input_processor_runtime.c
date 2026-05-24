@@ -1072,6 +1072,14 @@ int zmk_input_processor_runtime_get_config(const struct device *dev, const char 
         config->xy_swap_enabled = data->persistent_xy_swap_enabled;
         config->x_invert = data->persistent_x_invert;
         config->y_invert = data->persistent_y_invert;
+        config->ball_action_enabled = data->persistent_ball_action_enabled;
+        config->ball_action_mode = data->persistent_ball_action_mode;
+        config->ball_action_direction = data->persistent_ball_action_direction;
+        config->ball_action_threshold = data->persistent_ball_action_threshold;
+        config->ball_action_tick_ms = data->persistent_ball_action_tick_ms;
+        config->ball_action_tap_ms = data->persistent_ball_action_tap_ms;
+        config->ball_action_wait_ms = data->persistent_ball_action_wait_ms;
+        config->ball_action_active_layers = data->persistent_ball_action_active_layers;
     }
 
     return 0;

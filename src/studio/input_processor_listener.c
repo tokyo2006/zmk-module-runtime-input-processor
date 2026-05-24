@@ -83,6 +83,13 @@ static int input_processor_state_changed_listener(const zmk_event_t *eh) {
     info->xy_swap_enabled = ev->config.xy_swap_enabled;
     info->x_invert = ev->config.x_invert;
     info->y_invert = ev->config.y_invert;
+    info->ball_action_enabled = ev->config.ball_action_enabled;
+    info->ball_action_mode = ev->config.ball_action_mode;
+    info->ball_action_threshold = ev->config.ball_action_threshold;
+    info->ball_action_tick_ms = ev->config.ball_action_tick_ms;
+    info->ball_action_tap_ms = ev->config.ball_action_tap_ms;
+    info->ball_action_wait_ms = ev->config.ball_action_wait_ms;
+    info->ball_action_active_layers = ev->config.ball_action_active_layers;
 
     // Send notification via custom studio subsystem
     pb_callback_t encode_cb = {.funcs.encode = encode_notification, .arg = &notification};
