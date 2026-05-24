@@ -300,10 +300,6 @@ static int handle_get_input_processor(const cormoran_rip_GetInputProcessorReques
     result.processor.ball_action_tap_ms = config.ball_action_tap_ms;
     result.processor.ball_action_wait_ms = config.ball_action_wait_ms;
     result.processor.ball_action_active_layers = config.ball_action_active_layers;
-    strncpy(result.processor.ball_action_binding_0, config.ball_action_bindings[0], 31);
-    strncpy(result.processor.ball_action_binding_1, config.ball_action_bindings[1], 31);
-    strncpy(result.processor.ball_action_binding_2, config.ball_action_bindings[2], 31);
-    strncpy(result.processor.ball_action_binding_3, config.ball_action_bindings[3], 31);
 
     resp->which_response_type = cormoran_rip_Response_get_input_processor_tag;
     resp->response_type.get_input_processor = result;

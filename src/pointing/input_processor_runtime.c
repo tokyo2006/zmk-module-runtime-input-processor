@@ -11,6 +11,7 @@
 #include <math.h>
 #include <zephyr/device.h>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
+#include <dt-bindings/zmk/runtime_input_processor.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/dlist.h>
