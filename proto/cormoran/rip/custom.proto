@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "nanopb.proto";
+
 package cormoran.rip;
 
 // Axis snap mode enum

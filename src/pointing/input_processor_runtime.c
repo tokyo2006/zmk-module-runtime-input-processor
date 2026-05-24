@@ -1164,7 +1164,10 @@ int zmk_input_processor_runtime_foreach(int (*callback)(const struct device *dev
     for (size_t i = 0; i < runtime_processors_count; i++) {
         int ret = callback(runtime_processors[i], user_data);
         if (ret != 0) {
-return ret;
+            return ret;
+        }
+    }
+    return 0;
 }
 
 #if IS_ENABLED(CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR_BALL_ACTION)
@@ -1349,10 +1352,7 @@ int zmk_input_processor_runtime_set_ball_action_active_layers(const struct devic
     return ret;
 }
 
-#endif
-    }
-    return 0;
-}
+#endif // CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR_BALL_ACTION
 
 const struct device *zmk_input_processor_runtime_find_by_name(const char *name) {
     for (size_t i = 0; i < runtime_processors_count; i++) {
