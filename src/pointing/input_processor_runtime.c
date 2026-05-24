@@ -71,7 +71,6 @@ struct runtime_processor_config {
     uint16_t initial_ball_action_tick_ms;
     uint16_t initial_ball_action_tap_ms;
     uint16_t initial_ball_action_wait_ms;
-    char initial_ball_action_bindings[4][32];
     uint32_t initial_ball_action_active_layers;
 #endif
 };
@@ -855,10 +854,8 @@ static int runtime_processor_init(const struct device *dev) {
     data->persistent_ball_action_wait_ms = cfg->initial_ball_action_wait_ms;
     data->persistent_ball_action_active_layers = cfg->initial_ball_action_active_layers;
     for (int i = 0; i < 4; i++) {
-        strncpy(data->ball_action_bindings[i], cfg->initial_ball_action_bindings[i], 31);
-        data->ball_action_bindings[i][31] = '\0';
-        strncpy(data->persistent_ball_action_bindings[i], cfg->initial_ball_action_bindings[i], 31);
-        data->persistent_ball_action_bindings[i][31] = '\0';
+        data->ball_action_bindings[i][0] = '\0';
+        data->persistent_ball_action_bindings[i][0] = '\0';
     }
     data->ball_action_delta_x = 0;
     data->ball_action_delta_y = 0;
@@ -1089,10 +1086,6 @@ int zmk_input_processor_runtime_get_config(const struct device *dev, const char 
                 (static const uint16_t runtime_temp_layer_keep_keycodes_##n[] =                    \
                      DT_INST_PROP(n, temp_layer_keep_keycodes);),                                  \
                 ())                                                                                \
-    COND_CODE_1(DT_INST_NODE_HAS_PROP(n, ball_action_bindings),                                   \
-                (static const char *runtime_ball_action_bindings_##n[] =                           \
-                     DT_INST_PROP(n, ball_action_bindings);),                                      \
-                (static const char *runtime_ball_action_bindings_##n[] = { NULL, NULL, NULL, NULL };)) \
     BUILD_ASSERT(sizeof(DT_INST_PROP(n, processor_label)) <=                                       \
                      CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR_NAME_MAX_LEN,                              \
                  "processor_label " DT_INST_PROP(                                                  \
@@ -1143,7 +1136,6 @@ int zmk_input_processor_runtime_get_config(const struct device *dev, const char 
             .initial_ball_action_tap_ms = DT_INST_PROP_OR(n, ball_action_tap_ms, 50),           \
             .initial_ball_action_wait_ms = DT_INST_PROP_OR(n, ball_action_wait_ms, 50),         \
             .initial_ball_action_active_layers = DT_INST_PROP_OR(n, ball_action_active_layers, 0), \
-            .initial_ball_action_bindings = runtime_ball_action_bindings_##n,                   \
         ), ())                                                                                   \
     };                                                                                             \
     static struct runtime_processor_data runtime_data_##n;                                         \

@@ -890,15 +890,7 @@ static int handle_set_ball_action_binding(const cormoran_rip_SetBallActionBindin
         return -ENODEV;
     }
 
-    char binding_buf[33];
-    uint16_t len = req->binding.size;
-    if (len > 32) {
-        len = 32;
-    }
-    memcpy(binding_buf, req->binding.bytes, len);
-    binding_buf[len] = '\0';
-
-    int ret = zmk_input_processor_runtime_set_ball_action_binding(dev, req->index, binding_buf, true);
+    int ret = zmk_input_processor_runtime_set_ball_action_binding(dev, req->index, req->binding, true);
     if (ret < 0) {
         LOG_ERR("Failed to set ball action binding: %d", ret);
         return ret;
