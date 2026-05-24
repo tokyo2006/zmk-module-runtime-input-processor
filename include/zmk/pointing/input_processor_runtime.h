@@ -335,15 +335,16 @@ int zmk_input_processor_runtime_set_ball_action_mode(const struct device *dev, u
                                                      bool persistent);
 
 /**
- * @brief Set ball action direction filter
+ * @brief Set ball action binding for a direction
  *
  * @param dev Pointer to the device structure
- * @param direction Ball action direction (BALL_ACTION_DIR_*)
+ * @param index Binding index (0=+X, 1=-X, 2=+Y, 3=-Y)
+ * @param binding Binding string "behavior:param1:param2"
  * @param persistent If true, save to persistent storage; if false, temporary
  * @return 0 on success, negative error code on failure
  */
-int zmk_input_processor_runtime_set_ball_action_direction(const struct device *dev,
-                                                          uint8_t direction, bool persistent);
+int zmk_input_processor_runtime_set_ball_action_binding(const struct device *dev, uint8_t index,
+                                                        const char *binding, bool persistent);
 
 /**
  * @brief Set ball action threshold

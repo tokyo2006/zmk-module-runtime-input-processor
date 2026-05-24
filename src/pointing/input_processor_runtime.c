@@ -637,12 +637,12 @@ struct processor_settings {
 #if IS_ENABLED(CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR_BALL_ACTION)
     bool ball_action_enabled;
     uint8_t ball_action_mode;
-    uint8_t ball_action_direction;
     uint16_t ball_action_threshold;
     uint16_t ball_action_tick_ms;
     uint16_t ball_action_tap_ms;
     uint16_t ball_action_wait_ms;
     uint32_t ball_action_active_layers;
+    char ball_action_bindings[4][32];
 #endif
 };
 
@@ -744,15 +744,19 @@ static int load_processor_settings_cb(const char *name, size_t len, settings_rea
 #if IS_ENABLED(CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR_BALL_ACTION)
             data->persistent_ball_action_enabled = settings.ball_action_enabled;
             data->persistent_ball_action_mode = settings.ball_action_mode;
-            data->persistent_ball_action_direction = settings.ball_action_direction;
             data->persistent_ball_action_threshold = settings.ball_action_threshold;
             data->persistent_ball_action_tick_ms = settings.ball_action_tick_ms;
             data->persistent_ball_action_tap_ms = settings.ball_action_tap_ms;
             data->persistent_ball_action_wait_ms = settings.ball_action_wait_ms;
             data->persistent_ball_action_active_layers = settings.ball_action_active_layers;
+            for (int i = 0; i < 4; i++) {
+                strncpy(data->persistent_ball_action_bindings[i], settings.ball_action_bindings[i], 31);
+                data->persistent_ball_action_bindings[i][31] = '\0';
+                strncpy(data->ball_action_bindings[i], settings.ball_action_bindings[i], 31);
+                data->ball_action_bindings[i][31] = '\0';
+            }
             data->ball_action_enabled = settings.ball_action_enabled;
             data->ball_action_mode = settings.ball_action_mode;
-            data->ball_action_direction = settings.ball_action_direction;
             data->ball_action_threshold = settings.ball_action_threshold;
             data->ball_action_tick_ms = settings.ball_action_tick_ms;
             data->ball_action_tap_ms = settings.ball_action_tap_ms;
