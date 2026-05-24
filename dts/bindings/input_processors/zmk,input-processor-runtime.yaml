@@ -169,13 +169,7 @@ properties:
     default: 50
     description: Wait after release before re-arm (ms).
 
-  ball-action-bindings:
-    type: array
-    description: |
-      Default behavior bindings for ball action directions.
-      Format: "behavior:param1:param2" per binding, e.g., "kp:LSHIFT:0".
-      Up to 4 bindings for: right, left, down, up.
-      If not provided, defaults to empty (no action).
+  
 
   ball-action-active-layers:
     type: int
