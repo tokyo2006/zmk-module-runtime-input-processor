@@ -160,7 +160,7 @@ struct runtime_processor_data {
     uint16_t ball_action_tick_ms;
     uint16_t ball_action_tap_ms;
     uint16_t ball_action_wait_ms;
-    struct zmk_behavior_binding ball_action_bindings[4];
+    char ball_action_bindings[4][32];
     uint32_t ball_action_active_layers;
     // Ball action settings (persistent)
     bool persistent_ball_action_enabled;
@@ -169,7 +169,7 @@ struct runtime_processor_data {
     uint16_t persistent_ball_action_tick_ms;
     uint16_t persistent_ball_action_tap_ms;
     uint16_t persistent_ball_action_wait_ms;
-    struct zmk_behavior_binding persistent_ball_action_bindings[4];
+    char persistent_ball_action_bindings[4][32];
     uint32_t persistent_ball_action_active_layers;
     // Ball action runtime state
     int32_t ball_action_delta_x;
@@ -555,8 +555,11 @@ static int runtime_processor_handle_event(const struct device *dev, struct input
                     binding_idx = (trigger_delta > 0) ? 2 : 3;
                 }
 
-                struct zmk_behavior_binding *binding = &data->ball_action_bindings[binding_idx];
-                if (binding->behavior_dev[0] != '\0') {
+                const char *binding_str = data->ball_action_bindings[binding_idx];
+                if (binding_str[0] != '\0') {
+                    struct zmk_behavior_binding binding;
+                    parse_binding_string(binding_str, &binding);
+
                     struct zmk_behavior_binding_event behavior_event = {
                         .position = INT32_MAX,
                         .timestamp = k_uptime_get(),
@@ -565,10 +568,10 @@ static int runtime_processor_handle_event(const struct device *dev, struct input
 #endif
                     };
 
-                    int ret = zmk_behavior_queue_add(&behavior_event, *binding, true,
+                    int ret = zmk_behavior_queue_add(&behavior_event, binding, true,
                                                     data->ball_action_tap_ms);
                     if (ret >= 0) {
-                        zmk_behavior_queue_add(&behavior_event, *binding, false,
+                        zmk_behavior_queue_add(&behavior_event, binding, false,
                                                data->ball_action_wait_ms);
                         data->ball_action_last_trigger_timestamp = now;
                         data->ball_action_is_armed = false;
@@ -855,8 +858,10 @@ static int runtime_processor_init(const struct device *dev) {
     data->persistent_ball_action_wait_ms = cfg->initial_ball_action_wait_ms;
     data->persistent_ball_action_active_layers = cfg->initial_ball_action_active_layers;
     for (int i = 0; i < 4; i++) {
-        parse_binding_string(cfg->initial_ball_action_bindings[i], &data->ball_action_bindings[i]);
-        parse_binding_string(cfg->initial_ball_action_bindings[i], &data->persistent_ball_action_bindings[i]);
+        strncpy(data->ball_action_bindings[i], cfg->initial_ball_action_bindings[i], 31);
+        data->ball_action_bindings[i][31] = '\0';
+        strncpy(data->persistent_ball_action_bindings[i], cfg->initial_ball_action_bindings[i], 31);
+        data->persistent_ball_action_bindings[i][31] = '\0';
     }
     data->ball_action_delta_x = 0;
     data->ball_action_delta_y = 0;
@@ -1239,10 +1244,20 @@ int zmk_input_processor_runtime_set_ball_action_binding(const struct device *dev
     }
 
     struct runtime_processor_data *data = dev->data;
-    parse_binding_string(binding_str, &data->ball_action_bindings[index]);
+    if (binding_str && binding_str[0] != '\0') {
+        strncpy(data->ball_action_bindings[index], binding_str, 31);
+        data->ball_action_bindings[index][31] = '\0';
+    } else {
+        data->ball_action_bindings[index][0] = '\0';
+    }
 
     if (persistent) {
-        parse_binding_string(binding_str, &data->persistent_ball_action_bindings[index]);
+        if (binding_str && binding_str[0] != '\0') {
+            strncpy(data->persistent_ball_action_bindings[index], binding_str, 31);
+            data->persistent_ball_action_bindings[index][31] = '\0';
+        } else {
+            data->persistent_ball_action_bindings[index][0] = '\0';
+        }
     }
 
     LOG_INF("Ball action binding[%d]: %s%s", index, binding_str ? binding_str : "(none)",
