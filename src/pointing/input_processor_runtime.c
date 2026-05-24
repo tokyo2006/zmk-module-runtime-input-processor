@@ -6,6 +6,7 @@
 
 #define DT_DRV_COMPAT zmk_input_processor_runtime
 
+#include <string.h>
 #include <drivers/input_processor.h>
 #include <math.h>
 #include <zephyr/device.h>
@@ -180,10 +181,9 @@ struct runtime_processor_data {
 };
 
 static void parse_binding_string(const char *str, struct zmk_behavior_binding *binding) {
-    if (!str) {
-        binding->behavior_dev[0] = '\0';
-        binding->param1 = 0;
-        binding->param2 = 0;
+    memset(binding, 0, sizeof(*binding));
+
+    if (!str || str[0] == '\0') {
         return;
     }
 
@@ -196,10 +196,10 @@ static void parse_binding_string(const char *str, struct zmk_behavior_binding *b
     char *p2_str = strtok(NULL, ":");
 
     if (dev_name) {
-        strncpy(binding->behavior_dev, dev_name, sizeof(binding->behavior_dev) - 1);
-        binding->behavior_dev[sizeof(binding->behavior_dev) - 1] = '\0';
-    } else {
-        binding->behavior_dev[0] = '\0';
+        const struct device *dev = zmk_behavior_get_binding(dev_name);
+        if (dev) {
+            binding->behavior_dev = dev->name;
+        }
     }
 
     binding->param1 = p1_str ? atoi(p1_str) : 0;

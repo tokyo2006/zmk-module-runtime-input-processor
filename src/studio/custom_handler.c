@@ -77,9 +77,9 @@ static int handle_set_y_invert(const cormoran_rip_SetYInvertRequest *req,
 static int handle_set_ball_action_enabled(const cormoran_rip_SetBallActionEnabledRequest *req,
                                            cormoran_rip_Response *resp);
 static int handle_set_ball_action_mode(const cormoran_rip_SetBallActionModeRequest *req,
-                                        cormoran_rip_Response *resp);
-static int handle_set_ball_action_direction(const cormoran_rip_SetBallActionDirectionRequest *req,
-                                            cormoran_rip_Response *resp);
+                                         cormoran_rip_Response *resp);
+static int handle_set_ball_action_binding(const cormoran_rip_SetBallActionBindingRequest *req,
+                                           cormoran_rip_Response *resp);
 static int handle_set_ball_action_threshold(const cormoran_rip_SetBallActionThresholdRequest *req,
                                              cormoran_rip_Response *resp);
 static int handle_set_ball_action_timing(const cormoran_rip_SetBallActionTimingRequest *req,
@@ -295,12 +295,15 @@ static int handle_get_input_processor(const cormoran_rip_GetInputProcessorReques
     result.processor.y_invert = config.y_invert;
     result.processor.ball_action_enabled = config.ball_action_enabled;
     result.processor.ball_action_mode = (cormoran_rip_BallActionMode)config.ball_action_mode;
-    result.processor.ball_action_direction = (cormoran_rip_BallActionDir)config.ball_action_direction;
     result.processor.ball_action_threshold = config.ball_action_threshold;
     result.processor.ball_action_tick_ms = config.ball_action_tick_ms;
     result.processor.ball_action_tap_ms = config.ball_action_tap_ms;
     result.processor.ball_action_wait_ms = config.ball_action_wait_ms;
     result.processor.ball_action_active_layers = config.ball_action_active_layers;
+    strncpy(result.processor.ball_action_binding_0, config.ball_action_bindings[0], 31);
+    strncpy(result.processor.ball_action_binding_1, config.ball_action_bindings[1], 31);
+    strncpy(result.processor.ball_action_binding_2, config.ball_action_bindings[2], 31);
+    strncpy(result.processor.ball_action_binding_3, config.ball_action_bindings[3], 31);
 
     resp->which_response_type = cormoran_rip_Response_get_input_processor_tag;
     resp->response_type.get_input_processor = result;
